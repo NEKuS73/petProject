@@ -23,14 +23,10 @@ type Data struct {
 
 func main() {
 	file, err := os.ReadFile("data.json")
-	if err != nil {
-		log.Fatalf("ERROR: %v", err)
-	}
+	ifERR(err)
 	var data Data
 	err = json.Unmarshal(file, &data)
-	if err != nil {
-		log.Fatalf("ERROR: %v", err)
-	}
+	ifERR(err)
 	income, outcome := incomeOutcome(data)
 	fmt.Printf("Дорогой, %v, за %v года, Вы заработали %v рублей, а потратили %v рублей\n", data.User, data.Month, income, outcome)
 	fmt.Printf("Итого в копилку Вы можете отложить %v рублей\n", income-outcome)
@@ -46,4 +42,9 @@ func incomeOutcome(d Data) (int, int) {
 		}
 	}
 	return income, outcome
+}
+func ifERR(err error) {
+	if err != nil {
+		log.Fatalf("ERROR: %v", err)
+	}
 }
