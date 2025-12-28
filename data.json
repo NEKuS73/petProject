@@ -1,6 +1,7 @@
 {
-  "month": "Январь 2024",
-  "transactions": [
+    "user": "Никита",
+    "month": "Декабрь 2025",
+    "transactions": [
     {
       "id": 1,
       "date": "2024-01-05",
