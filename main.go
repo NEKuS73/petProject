@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type Transactions struct {
+type Transaction struct {
 	Id          int    `json:"id"`
 	Date        string `json:"date"`
 	Description string `json:"description"`
@@ -16,9 +16,9 @@ type Transactions struct {
 	Type        string `json:"type"`
 }
 type Data struct {
-	User        string         `json:"user"`
-	Month       string         `json:"month"`
-	Transaction []Transactions `json:"transactions"`
+	User         string        `json:"user"`
+	Month        string        `json:"month"`
+	Transactions []Transaction `json:"transactions"`
 }
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 }
 func incomeOutcome(d Data) (int, int) {
 	income, outcome := 0, 0
-	for _, v := range d.Transaction {
+	for _, v := range d.Transactions {
 		if v.Type == "income" {
 			income += v.Amount
 		}
