@@ -46,6 +46,7 @@ func main() {
 	} else {
 		fmt.Printf("Превышение трат за %v: %v рублей\n", data.Month, outcome-income)
 	}
+	fmt.Println("Самет - черт")
 }
 
 // incomeOutcome calculates the total income and expenses from the given data.
