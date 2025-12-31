@@ -38,9 +38,6 @@ func main() {
 	}
 }
 
-// incomeOutcome calculates the total income and expenses from the given data.
-// It iterates through the transactions and sums up the amounts based on their type.
-// Returns the total income and total expenses.
 func incomeOutcome(d Data) (int, int) {
 	income, outcome := 0, 0
 	for _, v := range d.Transactions {
@@ -54,8 +51,6 @@ func incomeOutcome(d Data) (int, int) {
 	return income, outcome
 }
 
-// ifERR checks if an error occurred and logs it if so.
-// It terminates the program with a fatal log message if an error is present.
 func ifERR(err error) {
 	if err != nil {
 		log.Fatalf("ERROR: %v", err)
