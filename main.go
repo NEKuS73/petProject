@@ -1,8 +1,5 @@
 package main
 
-/*
-Importing using libraries
-*/
 import (
 	"encoding/json"
 	"fmt"
@@ -10,28 +7,21 @@ import (
 	"os"
 )
 
-// Transaction represents a financial transaction with its details.
-// It includes the ID, date, description, category, amount, and type of the transaction.
 type Transaction struct {
-	Id          int    `json:"id"`          // Unique identifier for the transaction
-	Date        string `json:"date"`        // Date of the transaction in string format
-	Description string `json:"description"` // Description of the transaction
-	Category    string `json:"category"`    // Category of the transaction (e.g., food, salary)
-	Amount      int    `json:"amount"`      // Amount of money involved in the transaction
-	Type        string `json:"type"`        // Type of transaction (e.g., income or expense)
+	Id          int    `json:"id"`
+	Date        string `json:"date"`
+	Description string `json:"description"`
+	Category    string `json:"category"`
+	Amount      int    `json:"amount"`
+	Type        string `json:"type"`
 }
 
-// Data represents the overall financial data for a user in a specific month.
-// It includes the user's name, the month of the data, and a list of transactions.
 type Data struct {
-	User         string        `json:"user"`         // Name of the user
-	Month        string        `json:"month"`        // Month for which the data is recorded
-	Transactions []Transaction `json:"transactions"` // List of transactions for the month
+	User         string        `json:"user"`
+	Month        string        `json:"month"`
+	Transactions []Transaction `json:"transactions"`
 }
 
-// main is the entry point of the application.
-// It reads the financial data from a JSON file, processes the transactions,
-// and prints the income, expenses, and remaining balance or excess expenses.
 func main() {
 	file, err := os.ReadFile("data.json")
 	ifERR(err)
