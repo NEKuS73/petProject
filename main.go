@@ -7,6 +7,23 @@ import (
 	"os"
 )
 
+var categoryNames = map[string]string{
+	// Доходы
+	"salary":       "Зарплата",
+	"freelance":    "Фриланс",
+	"investments":  "Инвестиции",
+	"state":        "Гос. выплаты",
+	"other_income": "Прочие доходы",
+	// Расходы
+	"housing":    "Жильё",
+	"food":       "Еда",
+	"transport":  "Транспорт",
+	"health":     "Здоровье",
+	"education":  "Образование",
+	"obligatory": "Обязательные платежи",
+	"other":      "Прочие расходы",
+}
+
 type Transaction struct {
 	Id          int    `json:"id"`
 	Date        string `json:"date"`
@@ -24,38 +41,52 @@ type Data struct {
 
 func main() {
 	file, err := os.ReadFile("data.json")
-	ifERR(err)
+	checkERR(err)
 	var data Data
 	err = json.Unmarshal(file, &data)
-	ifERR(err)
-	income, outcome := incomeOutcome(data)
-	printAnalitics(data, income, outcome)
+	checkERR(err)
+	incomeTotal, incomeByCat := calculateStats(data, "income")
+	expenseTotal, expenseByCat := calculateStats(data, "expense")
+	printReport(data.Month, incomeTotal, incomeByCat, expenseTotal, expenseByCat)
 }
 
-func incomeOutcome(d Data) (int, int) {
-	income, outcome := 0, 0
-	for _, v := range d.Transactions {
-		if v.Type == "income" {
-			income += v.Amount
-		}
-		if v.Type == "expense" {
-			outcome += v.Amount
-		}
-	}
-	return income, outcome
-}
-
-func ifERR(err error) {
+func checkERR(err error) {
 	if err != nil {
 		log.Fatalf("ERROR: %v", err)
 	}
 }
-func printAnalitics(d Data, inc int, out int) {
-	fmt.Printf("Прибыль за %v: %v рублей\n", d.Month, inc)
-	fmt.Printf("Траты за %v: %v рублей\n", d.Month, out)
-	if inc >= out {
-		fmt.Printf("Остаток на %v: %v рублей\n", d.Month, inc-out)
-	} else {
-		fmt.Printf("Превышение трат за %v: %v рублей\n", d.Month, out-inc)
+func calculateStats(d Data, transType string) (int, map[string]int) {
+	total := 0
+	byCategory := make(map[string]int)
+	for _, t := range d.Transactions {
+		if t.Type == transType {
+			total += t.Amount
+			byCategory[t.Category] += t.Amount
+		}
+	}
+	return total, byCategory
+}
+func printReport(month string, incomeTotal int, incomeByCat map[string]int, expenseTotal int, expenseByCat map[string]int) {
+	fmt.Printf("📊 Отчёт за %s\n\n", month)
+	fmt.Printf("Всего заработано:   +%d₽\n", incomeTotal)
+	fmt.Printf("Всего потрачено:    -%d₽\n", expenseTotal)
+	fmt.Printf("Итоговый баланс:    %+d₽\n\n", incomeTotal-expenseTotal)
+
+	fmt.Println("ДОХОДЫ по категориям:")
+	for cat, amount := range incomeByCat {
+		name := categoryNames[cat]
+		if name == "" {
+			name = cat
+		}
+		fmt.Printf("  %-20s +%d₽\n", name+":", amount)
+	}
+
+	fmt.Println("\nРАСХОДЫ по категориям:")
+	for cat, amount := range expenseByCat {
+		name := categoryNames[cat]
+		if name == "" {
+			name = cat
+		}
+		fmt.Printf("  %-20s -%d₽\n", name+":", amount)
 	}
 }
