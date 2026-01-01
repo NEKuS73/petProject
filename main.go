@@ -29,13 +29,7 @@ func main() {
 	err = json.Unmarshal(file, &data)
 	ifERR(err)
 	income, outcome := incomeOutcome(data)
-	fmt.Printf("Прибыль за %v: %v рублей\n", data.Month, income)
-	fmt.Printf("Траты за %v: %v рублей\n", data.Month, outcome)
-	if income >= outcome {
-		fmt.Printf("Остаток на %v: %v рублей\n", data.Month, income-outcome)
-	} else {
-		fmt.Printf("Превышение трат за %v: %v рублей\n", data.Month, outcome-income)
-	}
+	printAnalitics(data, income, outcome)
 }
 
 func incomeOutcome(d Data) (int, int) {
@@ -54,5 +48,14 @@ func incomeOutcome(d Data) (int, int) {
 func ifERR(err error) {
 	if err != nil {
 		log.Fatalf("ERROR: %v", err)
+	}
+}
+func printAnalitics(d Data, inc int, out int) {
+	fmt.Printf("Прибыль за %v: %v рублей\n", d.Month, inc)
+	fmt.Printf("Траты за %v: %v рублей\n", d.Month, out)
+	if inc >= out {
+		fmt.Printf("Остаток на %v: %v рублей\n", d.Month, inc-out)
+	} else {
+		fmt.Printf("Превышение трат за %v: %v рублей\n", d.Month, out-inc)
 	}
 }
