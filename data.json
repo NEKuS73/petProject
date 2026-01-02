@@ -3,14 +3,6 @@
  "month": "Декабрь 2025",
  "transactions": [
   {
-   "id": 1,
-   "date": "2024-01-05",
-   "description": "Зарплата за январь",
-   "category": "salary",
-   "amount": 150000,
-   "type": "income"
-  },
-  {
    "id": 2,
    "date": "2024-01-07",
    "description": "Услуги веб-разработки",
@@ -104,6 +96,22 @@
    "description": "Полуичил зп за декабрь с задержкой",
    "category": "salary",
    "amount": 120000,
+   "type": "income"
+  },
+  {
+   "id": 14,
+   "date": "2026-01-02",
+   "description": "Купил хлеб и кофе",
+   "category": "food",
+   "amount": 475,
+   "type": "expense"
+  },
+  {
+   "id": 15,
+   "date": "2026-01-02",
+   "description": "Зп от компании",
+   "category": "salary",
+   "amount": 150000,
    "type": "income"
   }
  ]
