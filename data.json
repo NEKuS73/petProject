@@ -137,6 +137,14 @@
    "category": "obligatory",
    "amount": 1534234,
    "type": "expense"
+  },
+  {
+   "id": 19,
+   "date": "2025-02-01",
+   "description": "Выросли акции Сбера, вывел спред",
+   "category": "investments",
+   "amount": 150000,
+   "type": "income"
   }
  ]
 }
