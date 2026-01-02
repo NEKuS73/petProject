@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var categoryNames = map[string]string{
@@ -48,6 +52,9 @@ func main() {
 	incomeTotal, incomeByCat := calculateStats(data, "income")
 	expenseTotal, expenseByCat := calculateStats(data, "expense")
 	printReport(data.Month, incomeTotal, incomeByCat, expenseTotal, expenseByCat)
+
+	addTransaction(&data)
+	saveData("data.json", data)
 }
 
 func checkERR(err error) {
@@ -89,4 +96,73 @@ func printReport(month string, incomeTotal int, incomeByCat map[string]int, expe
 		}
 		fmt.Printf("  %-20s -%d₽\n", name+":", amount)
 	}
+}
+func addTransaction(d *Data) {
+	var newTransaction Transaction
+	var err error
+	newTransaction.Id = getNextID(d.Transactions)
+	newTransaction.Date = time.Now().Format(time.DateOnly)
+	newTransaction.Type = inputType()
+	newTransaction.Category = inputCat()
+	fmt.Println("Расскажите подробнее, какое событие хотите добавить")
+	newTransaction.Description = input()
+	newTransaction.Amount = inputAmount()
+	checkERR(err)
+	d.Transactions = append(d.Transactions, newTransaction)
+	fmt.Printf("Поздравляю, %v, Вы успешно добавили новую транзакцию!\n", d.User)
+	fmt.Println("Более детальная информация:")
+	fmt.Printf("Id: %v\nДата совершения: %v\nТип транзакции: %v\nСобытие: %v\nКатегория: %v\nСумма: %v₽\n", newTransaction.Id, newTransaction.Date, newTransaction.Type, newTransaction.Description, newTransaction.Category, newTransaction.Amount)
+}
+func getNextID(transactions []Transaction) int {
+	maxID := 0
+	for _, t := range transactions {
+		if t.Id > maxID {
+			maxID = t.Id
+		}
+	}
+	return maxID + 1
+}
+func input() string {
+	reader := bufio.NewReader(os.Stdin)
+	inputValue, err := reader.ReadString('\n')
+	checkERR(err)
+	return strings.TrimSpace(inputValue)
+}
+func inputAmount() int {
+	for {
+		fmt.Println("Какова сумма данной операции")
+		amountStr := input()
+		amount, err := strconv.Atoi(amountStr)
+		if err == nil && amount > 0 {
+			return amount
+		}
+		fmt.Println("Ошибка! Введите положительное число.")
+	}
+}
+func inputCat() string {
+	for {
+		fmt.Println("Укажите, к какой категории относится данная операция")
+		category := input()
+		for k, v := range categoryNames {
+			if category == v || category == k {
+				return k
+			}
+		}
+		fmt.Println("Ошибка: укажите существующую категорию")
+	}
+}
+func inputType() string {
+	for {
+		fmt.Println("Какой тип транзакции хотите добавить? (income/expense)")
+		transactionType := input()
+		if transactionType == "income" || transactionType == "expense" {
+			return transactionType
+		}
+		fmt.Println("Ошибка: укажите существующий тип транзакции")
+	}
+}
+func saveData(fileName string, d Data) error {
+	jsonData, err := json.MarshalIndent(d, "", " ")
+	checkERR(err)
+	return os.WriteFile(fileName, jsonData, 0644)
 }
