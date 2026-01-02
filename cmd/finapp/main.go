@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	data := storage.LoadData("../../data.json")
+	data := storage.LoadData("data.json")
 
 	for {
 		fmt.Println("\n=== Личный финансовый менеджер ===")
@@ -27,19 +27,19 @@ func main() {
 			ui.PrintReport(data.Month, incomeTotal, incomeByCat, expenseTotal, expenseByCat)
 		case "2":
 			ui.AddTransaction(&data)
-			if err := storage.SaveData("../../data.json", data); err != nil {
+			if err := storage.SaveData("data.json", data); err != nil {
 				fmt.Printf("КРИТИЧЕСКАЯ ОШИБКА: не удалось сохранить данные: %v\n", err)
 			}
 		case "3":
 			ui.ListTransactions(data.Transactions)
 		case "4":
 			ui.DeleteTransaction(&data)
-			if err := storage.SaveData("../../data.json", data); err != nil {
+			if err := storage.SaveData("data.json", data); err != nil {
 				fmt.Printf("КРИТИЧЕСКАЯ ОШИБКА: не удалось сохранить данные: %v\n", err)
 			}
 		case "5":
 			fmt.Println("Сохранение данных и выход...")
-			if err := storage.SaveData("../../data.json", data); err != nil {
+			if err := storage.SaveData("data.json", data); err != nil {
 				fmt.Printf("КРИТИЧЕСКАЯ ОШИБКА: не удалось сохранить данные: %v\n", err)
 			}
 			return
