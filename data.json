@@ -113,6 +113,30 @@
    "category": "salary",
    "amount": 150000,
    "type": "income"
+  },
+  {
+   "id": 16,
+   "date": "2026-02-01",
+   "description": "Купил клубную карту в Фитнес-Клубе Ультра",
+   "category": "helth",
+   "amount": 15900,
+   "type": "expense"
+  },
+  {
+   "id": 17,
+   "date": "2026-01-02",
+   "description": "Сделал верстку сайта для труб",
+   "category": "freelance",
+   "amount": 15000,
+   "type": "income"
+  },
+  {
+   "id": 18,
+   "date": "2024-02-29",
+   "description": "Налог в соответвствии с 3-НДФЛ",
+   "category": "obligatory",
+   "amount": 1534234,
+   "type": "expense"
   }
  ]
 }
