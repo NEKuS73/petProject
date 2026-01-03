@@ -3,6 +3,7 @@ package ui
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -44,7 +45,7 @@ func InputAmount() int {
 		fmt.Println("Какова сумма данной операции")
 		amountStr := Input()
 		amount, err := strconv.Atoi(amountStr)
-		if err == nil && amount >= 0 {
+		if err == nil && amount > 0 {
 			return amount
 		}
 		fmt.Println("Ошибка! Введите положительное число.")
@@ -138,30 +139,27 @@ func AddTransaction(d *models.Data) {
 	newTransaction.Id = logic.GetNextID(d.Transactions)
 
 	newTransaction.Date = InputDate()
-	if checkCancel(newTransaction.Date, "Отменяю...") {
+	if CheckCancel(newTransaction.Date, "Отменяю...") {
 		return
 	}
 
 	newTransaction.Type = InputType()
-	if checkCancel(newTransaction.Type, "Отменяю...") {
+	if CheckCancel(newTransaction.Type, "Отменяю...") {
 		return
 	}
 
 	newTransaction.Category = InputCat(newTransaction.Type)
-	if checkCancel(newTransaction.Category, "Отменяю...") {
+	if CheckCancel(newTransaction.Category, "Отменяю...") {
 		return
 	}
 
 	fmt.Println("Расскажите подробнее, какое событие хотите добавить")
 	newTransaction.Description = Input()
-	if checkCancel(newTransaction.Description, "Отменяю...") {
+	if CheckCancel(newTransaction.Description, "Отменяю...") {
 		return
 	}
 
 	newTransaction.Amount = InputAmount()
-	if checkCancel(newTransaction.Amount, "Отменяю...") {
-		return
-	}
 
 	d.Transactions = append(d.Transactions, newTransaction)
 	fmt.Printf("Поздравляю, %v, Вы успешно добавили новую транзакцию!\n", d.User)
@@ -223,15 +221,13 @@ func DeleteTransaction(d *models.Data) {
 
 		for i, t := range d.Transactions {
 			if t.Id == id {
-				fmt.Printf("Удалить транзакцию '%s' на сумму %d₽? ", t.Description, t.Amount)
+				fmt.Printf("Удалить транзакцию '%s' на сумму %d₽? (y/n)", t.Description, t.Amount)
 				confirm := Input()
-				if strings.ToLower(confirm) == "да" || strings.ToLower(confirm) == "yes" || strings.ToLower(confirm) == "y" {
-					d.Transactions = append(d.Transactions[:i], d.Transactions[i+1:]...)
-					fmt.Println("Транзакция удалена.")
-				} else {
-					fmt.Println("Удаление отменено.")
+				if confirm == "y" || confirm == "Y" {
+					removeTransaction(d, i)
+					fmt.Println("Вы успешно удалили транзакцию")
+					return
 				}
-				return
 			}
 		}
 		fmt.Println("Транзакция с таким ID не найдена.")
@@ -241,6 +237,9 @@ func DeleteTransaction(d *models.Data) {
 		fmt.Println("Ошибка выбора, попробуйте еще раз")
 	}
 
+}
+func removeTransaction(d *models.Data, i int) {
+	d.Transactions = append(d.Transactions[:i], d.Transactions[i+1:]...)
 }
 
 func PrintReport(month string, incomeTotal int, incomeByCat map[string]int, expenseTotal int, expenseByCat map[string]int) {
@@ -271,7 +270,7 @@ func PrintReport(month string, incomeTotal int, incomeByCat map[string]int, expe
 		}
 	}
 }
-func checkCancel(value interface{}, message string) bool {
+func CheckCancel(value interface{}, message string) bool {
 	switch v := value.(type) {
 	case string:
 		if v == "0" {
@@ -293,4 +292,68 @@ func checkCancel(value interface{}, message string) bool {
 		}
 	}
 	return false
+}
+func EditTransaction(d *models.Data) {
+	fmt.Println("Какую транзакцию будем редактировать?")
+	for _, v := range d.Transactions {
+		fmt.Printf("%v: %v -> %v₽ \n", v.Id, v.Description, v.Amount)
+	}
+	choiceStr := Input()
+	choice1, err := strconv.Atoi(choiceStr)
+	if err != nil {
+		log.Printf("Ошибка: %v", err)
+	}
+	idx := -1
+	for i, t := range d.Transactions {
+		if t.Id == choice1 {
+			idx = i
+			break
+		}
+	}
+
+	if idx == -1 {
+		fmt.Println("Транзакция не найдена")
+		return
+	}
+	for {
+		fmt.Println("Открываю...")
+		fmt.Println("Какой параметр хотите изменить?")
+		fmt.Println("1. Дата")
+		fmt.Println("2. Тип")
+		fmt.Println("3. Категория")
+		fmt.Println("4. Описание")
+		fmt.Println("5. Сумма")
+		fmt.Println("\n0. Вернуться назад")
+		choice2 := Input()
+		switch choice2 {
+		case "1":
+			d.Transactions[idx].Date = InputDate()
+		case "2":
+			d.Transactions[idx].Type = InputType()
+		case "3":
+			d.Transactions[idx].Category = InputCat(d.Transactions[idx].Type)
+		case "4":
+			fmt.Println("Напишите новое описание транзакции")
+			d.Transactions[idx].Description = Input()
+		case "5":
+			d.Transactions[idx].Amount = InputAmount()
+		case "0":
+			fmt.Println("Возвращаемся в меню...")
+			return
+		default:
+			fmt.Println("Неверный выбор, попробуйте еще раз!")
+		}
+		fmt.Println("Изменения проведены упешно!")
+		fmt.Println("Продолжим изменения? (y/n)")
+
+		confirm := Input()
+		if confirm == "y" || confirm == "Y" {
+			fmt.Println("Вернемся к изменению Вашей транзакции")
+		} else {
+			fmt.Println("Операция завершена!")
+			fmt.Println("Возвращаемся в главное меню")
+			return
+		}
+	}
+
 }
