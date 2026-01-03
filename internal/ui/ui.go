@@ -25,6 +25,9 @@ func InputDate() string {
 		fmt.Println("Когда операция была произведена?")
 		fmt.Println("Запишите дату в формате (YYYY-MM-DD)")
 		transDate := Input()
+		if transDate == "0" {
+			return "0"
+		}
 		_, err := time.Parse("2006-01-02", transDate)
 		if err == nil {
 			return transDate
@@ -41,7 +44,7 @@ func InputAmount() int {
 		fmt.Println("Какова сумма данной операции")
 		amountStr := Input()
 		amount, err := strconv.Atoi(amountStr)
-		if err == nil && amount > 0 {
+		if err == nil && amount >= 0 {
 			return amount
 		}
 		fmt.Println("Ошибка! Введите положительное число.")
@@ -57,6 +60,7 @@ func InputCat(transactionType string) string {
 			fmt.Println("3. Инвестиции")
 			fmt.Println("4. Гос. выплаты")
 			fmt.Println("5. Прочие доходы")
+			fmt.Println("0. Назад")
 			category := Input()
 			switch category {
 			case "1":
@@ -69,6 +73,8 @@ func InputCat(transactionType string) string {
 				return "state"
 			case "5":
 				return "other_income"
+			case "0":
+				return "0"
 			}
 			fmt.Println("Ошибка: укажите существующую категорию дохода")
 		} else {
@@ -80,6 +86,7 @@ func InputCat(transactionType string) string {
 			fmt.Println("5. Образование")
 			fmt.Println("6. Обязательные платежи")
 			fmt.Println("7. Прочие расходы")
+			fmt.Println("0. Назад")
 			category := Input()
 			switch category {
 			case "1":
@@ -96,6 +103,8 @@ func InputCat(transactionType string) string {
 				return "obligatory"
 			case "7":
 				return "other"
+			case "0":
+				return "0"
 			}
 			fmt.Println("Ошибка: укажите существующую категорию расхода")
 		}
@@ -106,6 +115,9 @@ func InputType() string {
 	for {
 		fmt.Println("Какой тип транзакции хотите добавить? (income/expense)")
 		transactionType := Input()
+		if transactionType == "0" {
+			return "0"
+		}
 		if transactionType == "income" || transactionType == "expense" {
 			return transactionType
 		}
@@ -117,6 +129,118 @@ func InputType() string {
 		}
 		fmt.Println("Ошибка: укажите существующий тип транзакции")
 	}
+}
+
+func AddTransaction(d *models.Data) {
+	var newTransaction models.Transaction
+	fmt.Println("Чтобы отменить добавление и вернуться назад, Напишите '0'")
+
+	newTransaction.Id = logic.GetNextID(d.Transactions)
+
+	newTransaction.Date = InputDate()
+	if checkCancel(newTransaction.Date, "Отменяю...") {
+		return
+	}
+
+	newTransaction.Type = InputType()
+	if checkCancel(newTransaction.Type, "Отменяю...") {
+		return
+	}
+
+	newTransaction.Category = InputCat(newTransaction.Type)
+	if checkCancel(newTransaction.Category, "Отменяю...") {
+		return
+	}
+
+	fmt.Println("Расскажите подробнее, какое событие хотите добавить")
+	newTransaction.Description = Input()
+	if checkCancel(newTransaction.Description, "Отменяю...") {
+		return
+	}
+
+	newTransaction.Amount = InputAmount()
+	if checkCancel(newTransaction.Amount, "Отменяю...") {
+		return
+	}
+
+	d.Transactions = append(d.Transactions, newTransaction)
+	fmt.Printf("Поздравляю, %v, Вы успешно добавили новую транзакцию!\n", d.User)
+	fmt.Println("Более детальная информация:")
+	fmt.Printf("Id: %v\nДата совершения: %v\nТип транзакции: %v\nСобытие: %v\nКатегория: %v\nСумма: %v₽\n",
+		newTransaction.Id, newTransaction.Date, newTransaction.Type,
+		newTransaction.Description, newTransaction.Category, newTransaction.Amount)
+}
+func ListTransactions(transactions []models.Transaction) {
+	if len(transactions) == 0 {
+		fmt.Println("Транзакций нет.")
+		return
+	}
+	fmt.Printf("\n%-4s %-12s %-10s %-25s %-20s %10s\n",
+		"ID", "Дата", "Тип", "Описание", "Категория", "Сумма")
+	for _, t := range transactions {
+		typeStr := "Доход"
+		if t.Type == "expense" {
+			typeStr = "Расход"
+		}
+		catName := models.CategoryNames[t.Category]
+		if catName == "" {
+			catName = t.Category
+		}
+		fmt.Printf("%-4d %-12s %-10s %-25s %-20s %10d₽\n",
+			t.Id, t.Date, typeStr, t.Description, catName, t.Amount)
+	}
+}
+
+func DeleteTransaction(d *models.Data) {
+	fmt.Println("1. Очистить весь список транзакций")
+	fmt.Println("2. Удалить транзакцию по ID")
+	fmt.Println("\n0. Вернуться назад")
+	choice := Input()
+	switch choice {
+	case "1":
+		fmt.Printf("Вы уверены, что хотите удалить все транзакции за %v? (y/n)\n", d.Month)
+		response := Input()
+		if response == "y" || response == "Y" {
+			d.Transactions = nil
+			fmt.Println("Все транзакции удалены")
+		} else {
+			fmt.Println("Возвращаемся...")
+			return
+		}
+	case "2":
+		fmt.Print("Введите ID транзакции для удаления: \n")
+		idStr := Input()
+		if idStr == "0" {
+			fmt.Println("Отменяю...")
+			fmt.Println("Возвращаемся назад...")
+			return
+		}
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			fmt.Println("Неверный ID")
+			return
+		}
+
+		for i, t := range d.Transactions {
+			if t.Id == id {
+				fmt.Printf("Удалить транзакцию '%s' на сумму %d₽? ", t.Description, t.Amount)
+				confirm := Input()
+				if strings.ToLower(confirm) == "да" || strings.ToLower(confirm) == "yes" || strings.ToLower(confirm) == "y" {
+					d.Transactions = append(d.Transactions[:i], d.Transactions[i+1:]...)
+					fmt.Println("Транзакция удалена.")
+				} else {
+					fmt.Println("Удаление отменено.")
+				}
+				return
+			}
+		}
+		fmt.Println("Транзакция с таким ID не найдена.")
+	case "0":
+		return
+	default:
+		fmt.Println("Ошибка выбора, попробуйте еще раз")
+	}
+
 }
 
 func PrintReport(month string, incomeTotal int, incomeByCat map[string]int, expenseTotal int, expenseByCat map[string]int) {
@@ -147,64 +271,26 @@ func PrintReport(month string, incomeTotal int, incomeByCat map[string]int, expe
 		}
 	}
 }
-
-func ListTransactions(transactions []models.Transaction) {
-	if len(transactions) == 0 {
-		fmt.Println("Транзакций нет.")
-		return
-	}
-	fmt.Printf("\n%-4s %-12s %-10s %-25s %-20s %10s\n",
-		"ID", "Дата", "Тип", "Описание", "Категория", "Сумма")
-	for _, t := range transactions {
-		typeStr := "Доход"
-		if t.Type == "expense" {
-			typeStr = "Расход"
+func checkCancel(value interface{}, message string) bool {
+	switch v := value.(type) {
+	case string:
+		if v == "0" {
+			fmt.Println(message)
+			fmt.Println("Возвращаемся назад...")
+			return true
 		}
-		catName := models.CategoryNames[t.Category]
-		if catName == "" {
-			catName = t.Category
+	case int:
+		if v == 0 {
+			fmt.Println(message)
+			fmt.Println("Возвращаемся назад...")
+			return true
 		}
-		fmt.Printf("%-4d %-12s %-10s %-25s %-20s %10d₽\n",
-			t.Id, t.Date, typeStr, t.Description, catName, t.Amount)
-	}
-}
-
-func AddTransaction(d *models.Data) {
-	var newTransaction models.Transaction
-	newTransaction.Id = logic.GetNextID(d.Transactions)
-	newTransaction.Date = InputDate()
-	newTransaction.Type = InputType()
-	newTransaction.Category = InputCat(newTransaction.Type)
-	fmt.Println("Расскажите подробнее, какое событие хотите добавить")
-	newTransaction.Description = Input()
-	newTransaction.Amount = InputAmount()
-	d.Transactions = append(d.Transactions, newTransaction)
-	fmt.Printf("Поздравляю, %v, Вы успешно добавили новую транзакцию!\n", d.User)
-	fmt.Println("Более детальная информация:")
-	fmt.Printf("Id: %v\nДата совершения: %v\nТип транзакции: %v\nСобытие: %v\nКатегория: %v\nСумма: %v₽\n", newTransaction.Id, newTransaction.Date, newTransaction.Type, newTransaction.Description, newTransaction.Category, newTransaction.Amount)
-}
-
-func DeleteTransaction(d *models.Data) {
-	fmt.Print("Введите ID транзакции для удаления: ")
-	idStr := Input()
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		fmt.Println("Неверный ID")
-		return
-	}
-
-	for i, t := range d.Transactions {
-		if t.Id == id {
-			fmt.Printf("Удалить транзакцию '%s' на сумму %d₽? ", t.Description, t.Amount)
-			confirm := Input()
-			if strings.ToLower(confirm) == "да" || strings.ToLower(confirm) == "yes" || strings.ToLower(confirm) == "y" {
-				d.Transactions = append(d.Transactions[:i], d.Transactions[i+1:]...)
-				fmt.Println("Транзакция удалена.")
-			} else {
-				fmt.Println("Удаление отменено.")
-			}
-			return
+	case float64:
+		if v == 0 {
+			fmt.Println(message)
+			fmt.Println("Возвращаемся назад...")
+			return true
 		}
 	}
-	fmt.Println("Транзакция с таким ID не найдена.")
+	return false
 }
